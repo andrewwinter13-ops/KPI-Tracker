@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Tracker Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0d0f; --surface: #141418; --surface2: #1c1c22;
+    --border: rgba(255,255,255,0.08); --text: #f0f0f2; --muted: #888899;
+    --accent: #00e5a0; --accent2: #7b61ff;
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; min-height: 100vh; }
+  .dash { max-width: 900px; margin: 0 auto; padding: 28px 24px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .header h1 { font-size: 20px; font-weight: 500; letter-spacing: -0.3px; }
+  .header .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 3px; }
+  .tab { padding: 6px 16px; border-radius: 6px; border: none; background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .tab.active { background: var(--surface2); color: var(--text); }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric { background: var(--surface); border-radius: 10px; padding: 16px; border: 0.5px solid var(--border); }
+  .metric .label { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric .value { font-size: 28px; font-weight: 500; }
+  .metric .delta { font-size: 11px; margin-top: 4px; }
+  .section { background: var(--surface); border-radius: 10px; border: 0.5px solid var(--border); margin-bottom: 14px; overflow: hidden; }
+  .section-head { padding: 13px 18px; border-bottom: 0.5px solid var(--border); font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+  .section-head strong { color: var(--text); font-weight: 500; font-size: 13px; }
+  .agent-row { display: grid; grid-template-columns: 140px 1fr 70px; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); }
+  .agent-row:last-child { border-bottom: none; }
+  .agent-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 9px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 7px; overflow: hidden; margin-bottom: 6px; }
+  .bar-wrap:last-child { margin-bottom: 0; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .count { text-align: right; font-size: 15px; font-weight: 500; }
+  .qual-badge { font-size: 10px; background: rgba(123,97,255,0.15); color: var(--accent2); border-radius: 4px; padding: 2px 7px; margin-top: 5px; display: block; text-align: right; }
+  .week-nav { display: flex; gap: 6px; align-items: center; }
+  .week-nav button { background: none; border: 0.5px solid var(--border); color: var(--muted); border-radius: 5px; width: 26px; height: 26px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .week-nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .week-nav span { font-size: 12px; color: var(--muted); min-width: 120px; text-align: center; }
+  .chart-wrap { padding: 18px; position: relative; height: 240px; }
+  .legend { display: flex; gap: 16px; padding: 0 18px 14px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend .sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .sync-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 0.5px solid var(--border); }
+  .sync-btn { padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--text); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sync-status { font-size: 12px; color: var(--muted); }
+  .sync-status.ok { color: var(--accent); }
+  .sync-status.err { color: #ff6b6b; }
+  .empty { padding: 28px; text-align: center; color: var(--muted); font-size: 12px; }
+  @media (max-width: 600px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .agent-row { grid-template-columns: 100px 1fr 50px; }
+  }
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="header">
+    <div>
+      <h1>Lead Tracker</h1>
+      <div class="sub" id="dateline"></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="tabs">
+        <button class="tab active" onclick="setView('weekly')">Weekly</button>
+        <button class="tab" onclick="setView('monthly')">Monthly</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics" id="metrics">
+    <div class="metric"><div class="label">This week</div><div class="value">—</div></div>
+    <div class="metric"><div class="label">Week qualified</div><div class="value">—</div></div>
+    <div class="metric"><div class="label">Month total</div><div class="value">—</div></div>
+    <div class="metric"><div class="label">Qual rate</div><div class="value">—</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <strong id="leads-title">Leads this week</strong>
+      <div class="week-nav" id="week-nav">
+        <button onclick="shiftWeek(-1)">‹</button>
+        <span id="week-label"></span>
+        <button onclick="shiftWeek(1)">›</button>
+      </div>
+    </div>
+    <div id="leads-bars"><div class="empty">Loading...</div></div>
+    <div class="sync-row">
+      <button class="sync-btn" onclick="fetchSheet()">↻ Refresh</button>
+      <span class="sync-status" id="sync-status">Connecting to Google Sheets...</span>
+    </div>
+  </div>
+
+  <div class="section" id="monthly-qual-section" style="display:none;">
+    <div class="section-head"><strong>Qualified leads this month</strong></div>
+    <div id="qual-bars"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><strong>6-month overview</strong></div>
+    <div class="legend" id="chart-legend"></div>
+    <div class="chart-wrap">
+      <canvas id="mainChart" role="img" aria-label="Monthly leads and qualified leads per agent"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1xajcXQY5H9R8awbOiNEU4RU4uoSndtdoHJv__2p8b2E';
+const SHEET_NAME = 'Sheet1';
+
+const AGENT_MAP = {
+  'grace alcantara': 'grace',
+  'gigi avelino': 'gigi',
+  'nina basilio': 'nina'
+};
+const AGENTS = ['grace', 'gigi', 'nina'];
+const AGENT_LABELS = { grace: 'Grace', gigi: 'Gigi', nina: 'Nina' };
+const COLORS = { grace: '#f7b731', gigi: '#00d2ff', nina: '#ff6b9d' };
+
+let view = 'weekly';
+let weekOffset = 0;
+let data = [];
+let chart = null;
+
+function getMondayOfWeek(offset) {
+  const now = new Date();
+  const day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
+  mon.setHours(0, 0, 0, 0);
+  return mon;
+}
+
+function getWeekRange(offset) {
+  const mon = getMondayOfWeek(offset);
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  sun.setHours(23, 59, 59, 999);
+  const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return { start: mon, end: sun, label: fmt(mon) + ' – ' + fmt(sun) };
+}
+
+function filterByWeek(offset) {
+  const { start, end } = getWeekRange(offset);
+  return data.filter(e => e.ts >= start && e.ts <= end);
+}
+
+function filterByMonth(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+  return data.filter(e => e.ts >= start && e.ts <= end);
+}
+
+function countByAgent(rows, type) {
+  const out = {};
+  AGENTS.forEach(a => out[a] = 0);
+  rows.filter(r => !type || r.type === type).forEach(r => { if (out[r.agent] !== undefined) out[r.agent]++; });
+  return out;
+}
+
+async function fetchSheet() {
+  const statusEl = document.getElementById('sync-status');
+  statusEl.textContent = 'Syncing...';
+  statusEl.className = 'sync-status';
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(sheetUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(sheetUrl)}`,
+    sheetUrl
+  ];
+  let lastErr = null;
+  for (const url of proxies) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      if (!text || text.startsWith('<')) throw new Error('Bad response');
+      parseCSV(text);
+      const now = new Date();
+      statusEl.textContent = 'Last synced ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      statusEl.className = 'sync-status ok';
+      render();
+      return;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  statusEl.textContent = 'Could not connect — try hosting on GitHub Pages instead of opening locally';
+  statusEl.className = 'sync-status err';
+  render();
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) { data = []; return; }
+  const headers = lines[0].replace(/"/g, '').split(',').map(h => h.trim().toLowerCase());
+  const tsIdx = headers.indexOf('timestamp');
+  const agentIdx = headers.indexOf('agent');
+  const typeIdx = headers.indexOf('type');
+  data = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+    if (!cols[tsIdx] || !cols[agentIdx] || !cols[typeIdx]) continue;
+    const agentKey = AGENT_MAP[cols[agentIdx].toLowerCase()] || null;
+    if (!agentKey) continue;
+    const ts = new Date(cols[tsIdx]);
+    if (isNaN(ts.getTime())) continue;
+    const type = cols[typeIdx].toLowerCase().includes('qual') ? 'qualified' : 'lead';
+    data.push({ agent: agentKey, type, ts });
+  }
+}
+
+function renderBars(containerId, leadCounts, qualCounts) {
+  const el = document.getElementById(containerId);
+  const showQual = !!qualCounts;
+  const allVals = AGENTS.flatMap(a => showQual ? [leadCounts[a], qualCounts[a]] : [leadCounts[a]]);
+  const max = Math.max(...allVals, 1);
+  el.innerHTML = AGENTS.map(a => {
+    const lPct = Math.round((leadCounts[a] / max) * 100);
+    const qPct = showQual ? Math.round((qualCounts[a] / max) * 100) : 0;
+    return `<div class="agent-row">
+      <div class="agent-name"><span class="dot" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]}</div>
+      <div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${lPct}%;background:${COLORS[a]}"></div></div>
+        ${showQual ? `<div class="bar-wrap"><div class="bar-fill" style="width:${qPct}%;background:var(--accent2)"></div></div>` : ''}
+      </div>
+      <div class="count">${leadCounts[a]}${showQual ? `<span class="qual-badge">${qualCounts[a]}Q</span>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMetrics() {
+  const now = new Date();
+  const wkRows = filterByWeek(0);
+  const mRows = filterByMonth(now);
+  const wkLeads = wkRows.filter(r => r.type === 'lead').length;
+  const wkQual = wkRows.filter(r => r.type === 'qualified').length;
+  const mLeads = mRows.filter(r => r.type === 'lead').length;
+  const mQual = mRows.filter(r => r.type === 'qualified').length;
+  const total = mLeads + mQual;
+  const rate = total > 0 ? Math.round((mQual / total) * 100) : 0;
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="label">This week</div><div class="value">${wkLeads}</div><div class="delta" style="color:var(--accent)">leads</div></div>
+    <div class="metric"><div class="label">Week qualified</div><div class="value">${wkQual}</div><div class="delta" style="color:var(--accent2)">qualified</div></div>
+    <div class="metric"><div class="label">Month total</div><div class="value">${mLeads + mQual}</div><div class="delta" style="color:var(--muted)">all entries</div></div>
+    <div class="metric"><div class="label">Qual rate</div><div class="value">${rate}%</div><div class="delta" style="color:var(--accent2)">this month</div></div>`;
+}
+
+function renderChart() {
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ date: d, label: d.toLocaleDateString('en-US', { month: 'short' }) });
+  }
+  const datasets = AGENTS.flatMap(a => [
+    {
+      label: AGENT_LABELS[a] + ' leads',
+      data: months.map(m => filterByMonth(m.date).filter(r => r.agent === a && r.type === 'lead').length),
+      borderColor: COLORS[a], backgroundColor: COLORS[a] + '33',
+      borderWidth: 2, pointBackgroundColor: COLORS[a], pointRadius: 4, tension: 0.3, fill: false
+    },
+    {
+      label: AGENT_LABELS[a] + ' qual',
+      data: months.map(m => filterByMonth(m.date).filter(r => r.agent === a && r.type === 'qualified').length),
+      borderColor: COLORS[a], backgroundColor: 'transparent',
+      borderWidth: 1.5, borderDash: [5, 3], pointBackgroundColor: COLORS[a],
+      pointRadius: 3, tension: 0.3, fill: false
+    }
+  ]);
+  document.getElementById('chart-legend').innerHTML = AGENTS.map(a =>
+    `<span><span class="sq" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]} leads</span>
+     <span><span class="sq" style="background:${COLORS[a]};opacity:0.5"></span>${AGENT_LABELS[a]} qual</span>`
+  ).join('');
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('mainChart'), {
+    type: 'line',
+    data: { labels: months.map(m => m.label), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#888899', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.08)' } },
+        y: { ticks: { color: '#888899', font: { size: 11 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.08)' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function render() {
+  const now = new Date();
+  document.getElementById('dateline').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  renderMetrics();
+  const wkRange = getWeekRange(weekOffset);
+  document.getElementById('week-label').textContent = wkRange.label;
+  document.getElementById('week-nav').style.display = view === 'weekly' ? 'flex' : 'none';
+
+  if (view === 'weekly') {
+    document.getElementById('leads-title').textContent = weekOffset === 0 ? 'Leads this week' : `Leads — ${wkRange.label}`;
+    const rows = filterByWeek(weekOffset);
+    renderBars('leads-bars', countByAgent(rows, 'lead'), countByAgent(rows, 'qualified'));
+    document.getElementById('monthly-qual-section').style.display = 'none';
+  } else {
+    const mLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    document.getElementById('leads-title').textContent = `Leads — ${mLabel}`;
+    const mRows = filterByMonth(now);
+    const lc = countByAgent(mRows, 'lead');
+    const qc = countByAgent(mRows, 'qualified');
+    renderBars('leads-bars', lc, null);
+    document.getElementById('monthly-qual-section').style.display = 'block';
+    const maxQ = Math.max(...AGENTS.map(a => qc[a]), 1);
+    document.getElementById('qual-bars').innerHTML = AGENTS.map(a => {
+      const pct = Math.round((qc[a] / maxQ) * 100);
+      return `<div class="agent-row">
+        <div class="agent-name"><span class="dot" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]}</div>
+        <div><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:var(--accent2)"></div></div></div>
+        <div class="count">${qc[a]}</div>
+      </div>`;
+    }).join('');
+  }
+  renderChart();
+}
+
+function setView(v) {
+  view = v;
+  document.querySelectorAll('.tab').forEach((b, i) => b.classList.toggle('active', (i === 0 && v === 'weekly') || (i === 1 && v === 'monthly')));
+  weekOffset = 0;
+  render();
+}
+
+function shiftWeek(d) { weekOffset += d; render(); }
+
+fetchSheet();
+setInterval(fetchSheet, 120000);
+</script>
+</body>
+</html>
