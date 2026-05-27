@@ -6,64 +6,252 @@
 <title>Lead Tracker Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0d0d0f; --surface: #141418; --surface2: #1c1c22;
-    --border: rgba(255,255,255,0.08); --text: #f0f0f2; --muted: #888899;
-    --accent: #00e5a0; --accent2: #7b61ff;
-  }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; min-height: 100vh; }
-  .dash { max-width: 900px; margin: 0 auto; padding: 28px 24px; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .header h1 { font-size: 20px; font-weight: 500; letter-spacing: -0.3px; }
-  .header .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
-  .tabs { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 3px; }
-  .tab { padding: 6px 16px; border-radius: 6px; border: none; background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-  .tab.active { background: var(--surface2); color: var(--text); }
-  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
-  .metric { background: var(--surface); border-radius: 10px; padding: 16px; border: 0.5px solid var(--border); }
-  .metric .label { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .metric .value { font-size: 28px; font-weight: 500; }
-  .metric .delta { font-size: 11px; margin-top: 4px; }
-  .section { background: var(--surface); border-radius: 10px; border: 0.5px solid var(--border); margin-bottom: 14px; overflow: hidden; }
-  .section-head { padding: 13px 18px; border-bottom: 0.5px solid var(--border); font-size: 12px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
-  .section-head strong { color: var(--text); font-weight: 500; font-size: 13px; }
-  .agent-row { display: grid; grid-template-columns: 140px 1fr 70px; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); }
-  .agent-row:last-child { border-bottom: none; }
-  .agent-name { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 9px; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .bar-wrap { background: rgba(255,255,255,0.06); border-radius: 4px; height: 7px; overflow: hidden; margin-bottom: 6px; }
-  .bar-wrap:last-child { margin-bottom: 0; }
-  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-  .count { text-align: right; font-size: 15px; font-weight: 500; }
-  .qual-badge { font-size: 10px; background: rgba(123,97,255,0.15); color: var(--accent2); border-radius: 4px; padding: 2px 7px; margin-top: 5px; display: block; text-align: right; }
-  .week-nav { display: flex; gap: 6px; align-items: center; }
-  .week-nav button { background: none; border: 0.5px solid var(--border); color: var(--muted); border-radius: 5px; width: 26px; height: 26px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; }
-  .week-nav button:hover { border-color: var(--accent); color: var(--accent); }
-  .week-nav span { font-size: 12px; color: var(--muted); min-width: 120px; text-align: center; }
-  .chart-wrap { padding: 18px; position: relative; height: 240px; }
-  .legend { display: flex; gap: 16px; padding: 0 18px 14px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
-  .legend span { display: flex; align-items: center; gap: 5px; }
-  .legend .sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
-  .sync-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 0.5px solid var(--border); }
-  .sync-btn { padding: 6px 16px; border-radius: 6px; border: 0.5px solid var(--border); background: var(--surface2); color: var(--text); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
-  .sync-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .sync-status { font-size: 12px; color: var(--muted); }
-  .sync-status.ok { color: var(--accent); }
-  .sync-status.err { color: #ff6b6b; }
-  .empty { padding: 28px; text-align: center; color: var(--muted); font-size: 12px; }
-  @media (max-width: 600px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
-    .agent-row { grid-template-columns: 100px 1fr 50px; }
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0d;
+  --surface: #111116;
+  --surface2: #18181f;
+  --surface3: #1e1e27;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #eeeef2;
+  --muted: #77778a;
+  --accent: #00e5a0;
+  --accent2: #7b61ff;
+  --grace: #f7b731;
+  --gigi: #00d2ff;
+  --nina: #ff6b9d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  min-height: 100vh;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.dash { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+
+/* HEADER */
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.header .sub { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 8px; }
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(0,229,160,0.4);
+  animation: livepulse 2s infinite;
+}
+.live-dot.stale { background: var(--muted); box-shadow: none; animation: none; }
+@keyframes livepulse {
+  0% { box-shadow: 0 0 0 0 rgba(0,229,160,0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(0,229,160,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,229,160,0); }
+}
+
+.tabs { display: flex; gap: 3px; background: var(--surface); border-radius: 9px; padding: 3px; border: 0.5px solid var(--border); }
+.tab { padding: 6px 18px; border-radius: 7px; border: none; background: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.tab.active { background: var(--surface3); color: var(--text); }
+
+/* METRICS */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 18px 16px 14px;
+  border: 0.5px solid var(--border);
+  border-left: 3px solid var(--accent-color, var(--border2));
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.metric::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle at top right, var(--accent-color, transparent), transparent 70%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+.metric .label { font-size: 10px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }
+.metric .value { font-size: 32px; font-weight: 600; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.metric .delta { font-size: 11px; margin-top: 5px; color: var(--muted); }
+
+/* LEADERBOARD */
+.leaderboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.lb-card {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 0.5px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.lb-card.rank-1 { border-color: rgba(255,215,0,0.3); }
+.lb-card.rank-1::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, gold, transparent);
+}
+.lb-rank { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.lb-rank.crown::before { content: '👑 '; }
+.lb-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; letter-spacing: -0.5px;
+  border: 2px solid var(--agent-color);
+  color: var(--agent-color);
+  background: color-mix(in srgb, var(--agent-color) 12%, transparent);
+}
+.lb-name { font-size: 14px; font-weight: 600; }
+.lb-count { font-size: 26px; font-weight: 700; letter-spacing: -1px; color: var(--agent-color); }
+.lb-sub { font-size: 11px; color: var(--muted); }
+
+/* SECTION */
+.section {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 0.5px solid var(--border);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.section-head {
+  padding: 14px 18px;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 12px; color: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.section-head strong { color: var(--text); font-weight: 600; font-size: 13px; }
+
+/* AGENT ROWS */
+.agent-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 80px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 0.5px solid var(--border);
+  transition: background 0.15s;
+}
+.agent-row:last-child { border-bottom: none; }
+.agent-row:hover { background: var(--surface2); }
+
+.agent-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.agent-avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* BARS */
+.bar-wrap {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px; height: 8px;
+  overflow: hidden; margin-bottom: 7px;
+  position: relative;
+}
+.bar-wrap:last-child { margin-bottom: 0; }
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: -100%; bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: none;
+}
+.bar-fill.pulse::after { animation: shimmer 1.2s ease-out; }
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.count { text-align: right; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qual-badge {
+  font-size: 10px;
+  background: rgba(123,97,255,0.15);
+  color: var(--accent2);
+  border-radius: 4px;
+  padding: 2px 7px;
+  margin-top: 5px;
+  display: block;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* WEEK NAV */
+.week-nav { display: flex; gap: 6px; align-items: center; }
+.week-nav button {
+  background: none; border: 0.5px solid var(--border);
+  color: var(--muted); border-radius: 5px;
+  width: 26px; height: 26px; cursor: pointer;
+  font-size: 15px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.week-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.week-nav span { font-size: 12px; color: var(--muted); min-width: 120px; text-align: center; }
+
+/* CHART */
+.chart-wrap { padding: 18px; position: relative; height: 240px; }
+.legend { display: flex; gap: 14px; padding: 0 18px 14px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.legend .sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+/* SYNC */
+.sync-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 0.5px solid var(--border); }
+.sync-btn {
+  padding: 6px 16px; border-radius: 7px;
+  border: 0.5px solid var(--border);
+  background: var(--surface2); color: var(--text);
+  font-size: 12px; cursor: pointer; font-family: inherit;
+  transition: all 0.15s; font-weight: 500;
+}
+.sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sync-status { font-size: 12px; color: var(--muted); }
+.sync-status.ok { color: var(--accent); }
+.sync-status.err { color: #ff6b6b; }
+
+/* COUNT UP ANIMATION */
+@keyframes countup { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: countup 0.4s ease-out forwards; }
+
+.empty { padding: 28px; text-align: center; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .leaderboard { grid-template-columns: repeat(3, 1fr); }
+  .agent-row { grid-template-columns: 110px 1fr 50px; gap: 10px; }
+}
 </style>
 </head>
 <body>
 <div class="dash">
+
   <div class="header">
     <div>
       <h1>Lead Tracker</h1>
-      <div class="sub" id="dateline"></div>
+      <div class="sub">
+        <span class="live-dot stale" id="live-dot"></span>
+        <span id="dateline">Loading...</span>
+      </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
       <div class="tabs">
@@ -73,13 +261,21 @@
     </div>
   </div>
 
+  <!-- METRICS -->
   <div class="metrics" id="metrics">
-    <div class="metric"><div class="label">This week</div><div class="value">—</div></div>
-    <div class="metric"><div class="label">Week qualified</div><div class="value">—</div></div>
-    <div class="metric"><div class="label">Month total</div><div class="value">—</div></div>
-    <div class="metric"><div class="label">Qual rate</div><div class="value">—</div></div>
+    <div class="metric" style="--accent-color:var(--accent)"><div class="label">This week</div><div class="value">—</div><div class="delta">leads</div></div>
+    <div class="metric" style="--accent-color:var(--accent2)"><div class="label">Week qualified</div><div class="value">—</div><div class="delta">qualified</div></div>
+    <div class="metric" style="--accent-color:#888"><div class="label">Month total</div><div class="value">—</div><div class="delta">all entries</div></div>
+    <div class="metric" style="--accent-color:var(--accent2)"><div class="label">Qual rate</div><div class="value">—</div><div class="delta">this month</div></div>
   </div>
 
+  <!-- LEADERBOARD -->
+  <div class="section" style="margin-bottom:14px;">
+    <div class="section-head"><strong id="lb-title">Leaderboard — this week</strong></div>
+    <div class="leaderboard" id="leaderboard" style="padding:16px;"></div>
+  </div>
+
+  <!-- LEADS BARS -->
   <div class="section">
     <div class="section-head">
       <strong id="leads-title">Leads this week</strong>
@@ -92,15 +288,17 @@
     <div id="leads-bars"><div class="empty">Loading...</div></div>
     <div class="sync-row">
       <button class="sync-btn" onclick="fetchSheet()">↻ Refresh</button>
-      <span class="sync-status" id="sync-status">Connecting to Google Sheets...</span>
+      <span class="sync-status" id="sync-status">Connecting...</span>
     </div>
   </div>
 
+  <!-- MONTHLY QUAL -->
   <div class="section" id="monthly-qual-section" style="display:none;">
     <div class="section-head"><strong>Qualified leads this month</strong></div>
     <div id="qual-bars"></div>
   </div>
 
+  <!-- CHART -->
   <div class="section">
     <div class="section-head"><strong>6-month overview</strong></div>
     <div class="legend" id="chart-legend"></div>
@@ -108,6 +306,7 @@
       <canvas id="mainChart" role="img" aria-label="Monthly leads and qualified leads per agent"></canvas>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -121,19 +320,27 @@ const AGENT_MAP = {
 };
 const AGENTS = ['grace', 'gigi', 'nina'];
 const AGENT_LABELS = { grace: 'Grace', gigi: 'Gigi', nina: 'Nina' };
+const AGENT_INITIALS = { grace: 'GA', gigi: 'GiA', nina: 'NB' };
 const COLORS = { grace: '#f7b731', gigi: '#00d2ff', nina: '#ff6b9d' };
+const GRADIENTS = {
+  grace: 'linear-gradient(90deg, #f7b731, #ffdd88)',
+  gigi:  'linear-gradient(90deg, #00d2ff, #7af5ff)',
+  nina:  'linear-gradient(90deg, #ff6b9d, #ffaac8)'
+};
 
 let view = 'weekly';
 let weekOffset = 0;
 let data = [];
 let chart = null;
+let lastSyncTime = null;
+let prevCounts = {};
 
 function getMondayOfWeek(offset) {
   const now = new Date();
   const day = now.getDay();
   const mon = new Date(now);
   mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
-  mon.setHours(0, 0, 0, 0);
+  mon.setHours(0,0,0,0);
   return mon;
 }
 
@@ -141,7 +348,7 @@ function getWeekRange(offset) {
   const mon = getMondayOfWeek(offset);
   const sun = new Date(mon);
   sun.setDate(mon.getDate() + 6);
-  sun.setHours(23, 59, 59, 999);
+  sun.setHours(23,59,59,999);
   const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   return { start: mon, end: sun, label: fmt(mon) + ' – ' + fmt(sun) };
 }
@@ -164,6 +371,19 @@ function countByAgent(rows, type) {
   return out;
 }
 
+function animateCount(el, target) {
+  const duration = 600;
+  const start = performance.now();
+  const from = parseInt(el.textContent) || 0;
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (target - from) * ease);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 async function fetchSheet() {
   const statusEl = document.getElementById('sync-status');
   statusEl.textContent = 'Syncing...';
@@ -174,38 +394,38 @@ async function fetchSheet() {
     `https://corsproxy.io/?${encodeURIComponent(sheetUrl)}`,
     sheetUrl
   ];
-  let lastErr = null;
   for (const url of proxies) {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
-      if (!text || text.startsWith('<')) throw new Error('Bad response');
+      if (!text || text.trim().startsWith('<')) throw new Error('Bad response');
       parseCSV(text);
-      const now = new Date();
-      statusEl.textContent = 'Last synced ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      lastSyncTime = new Date();
+      statusEl.textContent = 'Last synced ' + lastSyncTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
       statusEl.className = 'sync-status ok';
-      render();
+      const dot = document.getElementById('live-dot');
+      dot.classList.remove('stale');
+      setTimeout(() => dot.classList.add('stale'), 10000);
+      render(true);
       return;
-    } catch (e) {
-      lastErr = e;
-    }
+    } catch(e) {}
   }
-  statusEl.textContent = 'Could not connect — try hosting on GitHub Pages instead of opening locally';
+  statusEl.textContent = 'Could not connect to sheet';
   statusEl.className = 'sync-status err';
-  render();
+  render(false);
 }
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) { data = []; return; }
-  const headers = lines[0].replace(/"/g, '').split(',').map(h => h.trim().toLowerCase());
+  const headers = lines[0].replace(/"/g,'').split(',').map(h => h.trim().toLowerCase());
   const tsIdx = headers.indexOf('timestamp');
   const agentIdx = headers.indexOf('agent');
   const typeIdx = headers.indexOf('type');
   data = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g,'').trim());
     if (!cols[tsIdx] || !cols[agentIdx] || !cols[typeIdx]) continue;
     const agentKey = AGENT_MAP[cols[agentIdx].toLowerCase()] || null;
     if (!agentKey) continue;
@@ -216,7 +436,24 @@ function parseCSV(text) {
   }
 }
 
-function renderBars(containerId, leadCounts, qualCounts) {
+function renderLeaderboard(rows, titleId) {
+  const lc = countByAgent(rows, 'lead');
+  const qc = countByAgent(rows, 'qualified');
+  const scored = AGENTS.map(a => ({ a, score: lc[a] + qc[a], leads: lc[a], qual: qc[a] }))
+    .sort((x, y) => y.score - x.score);
+  const ranks = ['1st', '2nd', '3rd'];
+  document.getElementById('leaderboard').innerHTML = scored.map((s, i) => `
+    <div class="lb-card ${i === 0 ? 'rank-1' : ''}" style="--agent-color:${COLORS[s.a]}">
+      <div class="lb-rank ${i === 0 ? 'crown' : ''}">${ranks[i]}</div>
+      <div class="lb-avatar" style="--agent-color:${COLORS[s.a]}">${AGENT_INITIALS[s.a]}</div>
+      <div class="lb-name">${AGENT_LABELS[s.a]}</div>
+      <div class="lb-count">${s.score}</div>
+      <div class="lb-sub">${s.leads} leads · ${s.qual} qual</div>
+    </div>
+  `).join('');
+}
+
+function renderBars(containerId, leadCounts, qualCounts, animate) {
   const el = document.getElementById(containerId);
   const showQual = !!qualCounts;
   const allVals = AGENTS.flatMap(a => showQual ? [leadCounts[a], qualCounts[a]] : [leadCounts[a]]);
@@ -224,18 +461,35 @@ function renderBars(containerId, leadCounts, qualCounts) {
   el.innerHTML = AGENTS.map(a => {
     const lPct = Math.round((leadCounts[a] / max) * 100);
     const qPct = showQual ? Math.round((qualCounts[a] / max) * 100) : 0;
+    const key = containerId + '_' + a;
+    const isNew = animate && (prevCounts[key] !== undefined) && (leadCounts[a] > prevCounts[key]);
+    prevCounts[key] = leadCounts[a];
     return `<div class="agent-row">
-      <div class="agent-name"><span class="dot" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]}</div>
+      <div class="agent-name">
+        <div class="agent-avatar-sm" style="background:color-mix(in srgb,${COLORS[a]} 15%,transparent);color:${COLORS[a]};border:1.5px solid ${COLORS[a]}">
+          ${AGENT_INITIALS[a]}
+        </div>
+        ${AGENT_LABELS[a]}
+      </div>
       <div>
-        <div class="bar-wrap"><div class="bar-fill" style="width:${lPct}%;background:${COLORS[a]}"></div></div>
-        ${showQual ? `<div class="bar-wrap"><div class="bar-fill" style="width:${qPct}%;background:var(--accent2)"></div></div>` : ''}
+        <div class="bar-wrap">
+          <div class="bar-fill ${isNew ? 'pulse' : ''}" data-pct="${lPct}" style="background:${GRADIENTS[a]};width:0%"></div>
+        </div>
+        ${showQual ? `<div class="bar-wrap"><div class="bar-fill" data-pct="${qPct}" style="background:linear-gradient(90deg,#7b61ff,#b39dff);width:0%"></div></div>` : ''}
       </div>
       <div class="count">${leadCounts[a]}${showQual ? `<span class="qual-badge">${qualCounts[a]}Q</span>` : ''}</div>
     </div>`;
   }).join('');
+  // Animate bars in after DOM paint
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.bar-fill').forEach(b => {
+      const pct = b.dataset.pct;
+      setTimeout(() => { b.style.width = pct + '%'; }, 80);
+    });
+  });
 }
 
-function renderMetrics() {
+function renderMetrics(animate) {
   const now = new Date();
   const wkRows = filterByWeek(0);
   const mRows = filterByMonth(now);
@@ -245,11 +499,21 @@ function renderMetrics() {
   const mQual = mRows.filter(r => r.type === 'qualified').length;
   const total = mLeads + mQual;
   const rate = total > 0 ? Math.round((mQual / total) * 100) : 0;
-  document.getElementById('metrics').innerHTML = `
-    <div class="metric"><div class="label">This week</div><div class="value">${wkLeads}</div><div class="delta" style="color:var(--accent)">leads</div></div>
-    <div class="metric"><div class="label">Week qualified</div><div class="value">${wkQual}</div><div class="delta" style="color:var(--accent2)">qualified</div></div>
-    <div class="metric"><div class="label">Month total</div><div class="value">${mLeads + mQual}</div><div class="delta" style="color:var(--muted)">all entries</div></div>
-    <div class="metric"><div class="label">Qual rate</div><div class="value">${rate}%</div><div class="delta" style="color:var(--accent2)">this month</div></div>`;
+
+  const vals = [wkLeads, wkQual, mLeads + mQual, rate];
+  const labels = ['This week', 'Week qualified', 'Month total', 'Qual rate'];
+  const deltas = ['leads', 'qualified', 'all entries', 'this month'];
+  const colors = ['var(--accent)', 'var(--accent2)', '#888', 'var(--accent2)'];
+  const accentColors = ['var(--accent)', 'var(--accent2)', '#555', 'var(--accent2)'];
+  const suffixes = ['', '', '', '%'];
+
+  document.getElementById('metrics').innerHTML = vals.map((v, i) => `
+    <div class="metric animate-in" style="--accent-color:${accentColors[i]};animation-delay:${i*0.06}s">
+      <div class="label">${labels[i]}</div>
+      <div class="value" id="metric-val-${i}">${v}${suffixes[i]}</div>
+      <div class="delta" style="color:${colors[i]}">${deltas[i]}</div>
+    </div>
+  `).join('');
 }
 
 function renderChart() {
@@ -263,20 +527,20 @@ function renderChart() {
     {
       label: AGENT_LABELS[a] + ' leads',
       data: months.map(m => filterByMonth(m.date).filter(r => r.agent === a && r.type === 'lead').length),
-      borderColor: COLORS[a], backgroundColor: COLORS[a] + '33',
-      borderWidth: 2, pointBackgroundColor: COLORS[a], pointRadius: 4, tension: 0.3, fill: false
+      borderColor: COLORS[a], backgroundColor: COLORS[a] + '22',
+      borderWidth: 2, pointBackgroundColor: COLORS[a], pointRadius: 4, tension: 0.4, fill: false
     },
     {
       label: AGENT_LABELS[a] + ' qual',
       data: months.map(m => filterByMonth(m.date).filter(r => r.agent === a && r.type === 'qualified').length),
       borderColor: COLORS[a], backgroundColor: 'transparent',
-      borderWidth: 1.5, borderDash: [5, 3], pointBackgroundColor: COLORS[a],
-      pointRadius: 3, tension: 0.3, fill: false
+      borderWidth: 1.5, borderDash: [5,3], pointBackgroundColor: COLORS[a],
+      pointRadius: 3, tension: 0.4, fill: false
     }
   ]);
   document.getElementById('chart-legend').innerHTML = AGENTS.map(a =>
     `<span><span class="sq" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]} leads</span>
-     <span><span class="sq" style="background:${COLORS[a]};opacity:0.5"></span>${AGENT_LABELS[a]} qual</span>`
+     <span><span class="sq" style="background:${COLORS[a]};opacity:0.4"></span>${AGENT_LABELS[a]} qual</span>`
   ).join('');
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('mainChart'), {
@@ -286,55 +550,69 @@ function renderChart() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#888899', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.08)' } },
-        y: { ticks: { color: '#888899', font: { size: 11 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: 'rgba(255,255,255,0.08)' }, beginAtZero: true }
+        x: { ticks: { color: '#77778a', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.03)' }, border: { color: 'rgba(255,255,255,0.07)' } },
+        y: { ticks: { color: '#77778a', font: { size: 11 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.03)' }, border: { color: 'rgba(255,255,255,0.07)' }, beginAtZero: true }
       }
     }
   });
 }
 
-function render() {
+function render(animate) {
   const now = new Date();
   document.getElementById('dateline').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-  renderMetrics();
+  renderMetrics(animate);
+
   const wkRange = getWeekRange(weekOffset);
   document.getElementById('week-label').textContent = wkRange.label;
   document.getElementById('week-nav').style.display = view === 'weekly' ? 'flex' : 'none';
 
   if (view === 'weekly') {
     document.getElementById('leads-title').textContent = weekOffset === 0 ? 'Leads this week' : `Leads — ${wkRange.label}`;
+    document.getElementById('lb-title').textContent = weekOffset === 0 ? 'Leaderboard — this week' : `Leaderboard — ${wkRange.label}`;
     const rows = filterByWeek(weekOffset);
-    renderBars('leads-bars', countByAgent(rows, 'lead'), countByAgent(rows, 'qualified'));
+    renderLeaderboard(rows);
+    renderBars('leads-bars', countByAgent(rows, 'lead'), countByAgent(rows, 'qualified'), animate);
     document.getElementById('monthly-qual-section').style.display = 'none';
   } else {
     const mLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     document.getElementById('leads-title').textContent = `Leads — ${mLabel}`;
+    document.getElementById('lb-title').textContent = `Leaderboard — ${mLabel}`;
     const mRows = filterByMonth(now);
     const lc = countByAgent(mRows, 'lead');
     const qc = countByAgent(mRows, 'qualified');
-    renderBars('leads-bars', lc, null);
+    renderLeaderboard(mRows);
+    renderBars('leads-bars', lc, null, animate);
     document.getElementById('monthly-qual-section').style.display = 'block';
     const maxQ = Math.max(...AGENTS.map(a => qc[a]), 1);
-    document.getElementById('qual-bars').innerHTML = AGENTS.map(a => {
+    const qualEl = document.getElementById('qual-bars');
+    qualEl.innerHTML = AGENTS.map(a => {
       const pct = Math.round((qc[a] / maxQ) * 100);
       return `<div class="agent-row">
-        <div class="agent-name"><span class="dot" style="background:${COLORS[a]}"></span>${AGENT_LABELS[a]}</div>
-        <div><div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:var(--accent2)"></div></div></div>
+        <div class="agent-name">
+          <div class="agent-avatar-sm" style="background:color-mix(in srgb,${COLORS[a]} 15%,transparent);color:${COLORS[a]};border:1.5px solid ${COLORS[a]}">${AGENT_INITIALS[a]}</div>
+          ${AGENT_LABELS[a]}
+        </div>
+        <div><div class="bar-wrap"><div class="bar-fill" data-pct="${pct}" style="background:linear-gradient(90deg,#7b61ff,#b39dff);width:0%"></div></div></div>
         <div class="count">${qc[a]}</div>
       </div>`;
     }).join('');
+    requestAnimationFrame(() => {
+      qualEl.querySelectorAll('.bar-fill').forEach(b => {
+        setTimeout(() => { b.style.width = b.dataset.pct + '%'; }, 80);
+      });
+    });
   }
   renderChart();
 }
 
 function setView(v) {
   view = v;
-  document.querySelectorAll('.tab').forEach((b, i) => b.classList.toggle('active', (i === 0 && v === 'weekly') || (i === 1 && v === 'monthly')));
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&v==='weekly')||(i===1&&v==='monthly')));
   weekOffset = 0;
-  render();
+  render(false);
 }
 
-function shiftWeek(d) { weekOffset += d; render(); }
+function shiftWeek(d) { weekOffset += d; render(false); }
 
 fetchSheet();
 setInterval(fetchSheet, 120000);
