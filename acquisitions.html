@@ -273,12 +273,14 @@ function parseCSV(text) {
     if(!cols[tsIdx]||!cols[typeIdx]) continue;
     const ts=new Date(cols[tsIdx]); if(isNaN(ts.getTime())) continue;
     const raw=cols[typeIdx].toLowerCase().trim();
-    let type='lead';
+    let type=null;
     if(raw.includes('contract')) type='contract';
-    else if(raw==='hot'||raw.includes('hot')) type='hot';
-    else if(raw==='warm'||raw.includes('warm')) type='warm';
+    else if(raw.includes('hot')) type='hot';
+    else if(raw.includes('warm')) type='warm';
     else if(raw.includes('offer')) type='offer';
     else if(raw.includes('qual')) type='qualified';
+    else if(raw.includes('lead')) type='lead';
+    if(!type) continue;
     data.push({type,ts});
   }
 }
