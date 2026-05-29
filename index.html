@@ -175,7 +175,7 @@ body{
   <!-- 4. QUARTERLY CHART -->
   <div class="section">
     <div class="section-head">
-      <strong id="chart-title">Quarterly breakdown — 2026</strong>
+      <strong id="chart-title">Qualified leads — quarterly breakdown 2026</strong>
       <div class="chart-controls">
         <div class="q-tabs">
           <button class="q-tab" onclick="setQuarter(1)">Q1</button>
@@ -421,7 +421,7 @@ function renderChart() {
   const weeks = getQuarterWeeks(activeQuarter, year);
   const datasets = AGENTS.filter(a=>activeAgents.has(a)).map(a => ({
     label: AGENT_LABELS[a],
-    data: weeks.map(w => data.filter(e=>e.ts>=w.start&&e.ts<=w.end&&e.agent===a).length),
+    data: weeks.map(w => data.filter(e=>e.ts>=w.start&&e.ts<=w.end&&e.agent===a&&e.type==='qualified').length),
     borderColor: COLORS[a], backgroundColor: COLORS[a]+'22',
     borderWidth:2, pointBackgroundColor:COLORS[a], pointRadius:4, tension:0.3, fill:false
   }));
