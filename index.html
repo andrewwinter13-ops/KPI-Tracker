@@ -105,6 +105,7 @@ body{
 .count-main{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
 .count-badges{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;}
 .badge{font-size:10px;border-radius:3px;padding:2px 6px;font-weight:600;}
+.badge-lead{background:rgba(74,158,255,0.12);color:var(--c-lead);}
 .badge-qual{background:rgba(123,97,255,0.12);color:var(--c-qual);}
 .badge-yes{background:rgba(0,229,160,0.12);color:var(--c-yes);}
 .badge-contract{background:rgba(247,183,49,0.12);color:var(--c-contract);}
@@ -212,7 +213,11 @@ body{
 <script>
 const SHEET_ID='1xajcXQY5H9R8awbOiNEU4RU4uoSndtdoHJv__2p8b2E';
 const SHEET_NAME='Sheet1';
-const AGENT_MAP={'grace alcantara':'grace','gigi avelino':'gigi','nina basilio':'nina'};
+const AGENT_MAP={
+  'grace alcantara':'grace','grace a':'grace','grace':'grace',
+  'gigi avelino':'gigi','gigi':'gigi',
+  'nina basilio':'nina','nina':'nina'
+};
 const AGENTS=['grace','gigi','nina'];
 const AGENT_LABELS={grace:'Grace',gigi:'Gigi',nina:'Nina'};
 const AGENT_INITIALS={grace:'GA',gigi:'GiA',nina:'NB'};
@@ -373,13 +378,13 @@ function renderPipeline(rows){
 function renderBars(rows,animate){
   const el=document.getElementById('leads-bars');
   const lc=countByAgent(rows,'lead'),qc=countByAgent(rows,'qualified'),yc=countByAgent(rows,'yes'),cc=countByAgent(rows,'contract');
-  const maxVal=Math.max(...AGENTS.map(a=>lc[a]+qc[a]+yc[a]+cc[a]),1);
+  const maxVal=Math.max(...AGENTS.map(a=>qc[a]),1);
   el.innerHTML=AGENTS.map(a=>{
     const total=lc[a]+qc[a]+yc[a]+cc[a];
-    const pct=Math.round((lc[a]/maxVal)*100);
+    const pct=Math.round((qc[a]/maxVal)*100);
     const key='bar_'+a;
-    const isNew=animate&&prevCounts[key]!==undefined&&total>prevCounts[key];
-    prevCounts[key]=total;
+    const isNew=animate&&prevCounts[key]!==undefined&&qc[a]>prevCounts[key];
+    prevCounts[key]=qc[a];
     return`<div class="agent-row">
       <div class="agent-name">
         <div class="agent-avatar-sm" style="background:color-mix(in srgb,${COLORS[a]} 15%,transparent);color:${COLORS[a]};border:1.5px solid ${COLORS[a]}">${AGENT_INITIALS[a]}</div>
@@ -389,9 +394,9 @@ function renderBars(rows,animate){
         <div class="bar-wrap"><div class="bar-fill ${isNew?'pulse':''}" data-pct="${pct}" style="background:${GRADIENTS[a]};width:0%"></div></div>
       </div>
       <div class="counts-cell">
-        <div class="count-main" style="color:${COLORS[a]}">${lc[a]}</div>
+        <div class="count-main" style="color:${COLORS[a]}">${qc[a]}<span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:3px;">qual</span></div>
         <div class="count-badges">
-          ${qc[a]>0?`<span class="badge badge-qual">${qc[a]}Q</span>`:''}
+          ${lc[a]>0?`<span class="badge badge-lead">${lc[a]}L</span>`:''}
           ${yc[a]>0?`<span class="badge badge-yes">${yc[a]}Y</span>`:''}
           ${cc[a]>0?`<span class="badge badge-contract">${cc[a]}C</span>`:''}
         </div>
